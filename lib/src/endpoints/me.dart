@@ -24,7 +24,7 @@ class Me extends EndpointPaging {
     return Player.fromJson(map);
   }
 
-  Future<Player> pause({String deviceId}) async {
+  Future<Player> pause({required String deviceId}) async {
     var jsonString = await _api._put('$_path/player/pause?' +
         _buildQuery({
           'deviceId': deviceId,
