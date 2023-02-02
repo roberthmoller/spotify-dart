@@ -15,10 +15,24 @@ class Me extends EndpointPaging {
 
     return User.fromJson(map);
   }
-  
-  
-  Future<Player> play() async {
-    final jsonString = await _api._put(_path+'/player/play');
+
+  Future<Player> play({
+    final String? contextUri,
+    final Iterable<String>? uris,
+    final int? position,
+  }) async {
+    final body = <String, dynamic>{};
+    if (contextUri != null) {
+      body['context_uri'] = contextUri;
+    }
+    if (uris != null) {
+      body['uris'] = uris;
+    }
+    if (position != null) {
+      body['position'] = position;
+    }
+
+    final jsonString = await _api._put(_path + '/player/play', json.encode(body));
     final map = json.decode(jsonString);
     return Player.fromJson(map);
   }
@@ -35,16 +49,16 @@ class Me extends EndpointPaging {
     // since 'artists' is the container, there is no
     // containerParse necessary. Adding json to make the
     // CursorPages-Object happy.
-    return _getCursorPages('$_path/following?type=${type.key}',
-        (json) => Artist.fromJson(json), 'artists', (json) => json);
+    return _getCursorPages('$_path/following?type=${type.key}', (json) => Artist.fromJson(json),
+        'artists', (json) => json);
   }
 
   /// Check if current user follow the provided artists. The output [bool]
   /// list is in the same order as the provided artist-id list
   Future<List<bool>> isFollowing(FollowingType type, List<String> ids) async {
     assert(ids.isNotEmpty, 'No user/artist id was provided');
-    final jsonString = await _api._get(
-        '$_path/following/contains?type=${type.key}&ids=${ids.join(",")}');
+    final jsonString =
+        await _api._get('$_path/following/contains?type=${type.key}&ids=${ids.join(",")}');
     final list = List.castFrom<dynamic, bool>(json.decode(jsonString));
     return list;
   }
@@ -62,8 +76,7 @@ class Me extends EndpointPaging {
   /// [ids] - user/artist
   Future<void> unfollow(FollowingType type, List<String> ids) async {
     assert(ids.isNotEmpty, 'No user/artist id was provided');
-    await _api
-        ._delete("$_path/following?type=${type.key}&ids=${ids.join(",")}");
+    await _api._delete("$_path/following?type=${type.key}&ids=${ids.join(",")}");
   }
 
   /// Get the object currently being played on the user’s Spotify account.
@@ -81,15 +94,16 @@ class Me extends EndpointPaging {
   /// Get tracks from the current user’s recently played tracks.
   /// Note: Currently doesn’t support podcast episodes.
   CursorPages<PlayHistory> recentlyPlayed({int? limit, DateTime? after, DateTime? before}) {
-    assert(after == null || before == null,
-      'Cannot specify both after and before.');
+    assert(after == null || before == null, 'Cannot specify both after and before.');
 
-    return _getCursorPages('$_path/player/recently-played?' +
-        _buildQuery({
-          'limit': limit,
-          'after': after?.millisecondsSinceEpoch,
-          'before': before?.millisecondsSinceEpoch
-        }), (json) => PlayHistory.fromJson(json));
+    return _getCursorPages(
+        '$_path/player/recently-played?' +
+            _buildQuery({
+              'limit': limit,
+              'after': after?.millisecondsSinceEpoch,
+              'before': before?.millisecondsSinceEpoch
+            }),
+        (json) => PlayHistory.fromJson(json));
   }
 
   /// Get the current user's top tracks.
@@ -145,8 +159,7 @@ class Me extends EndpointPaging {
   /// [bool] list is in the same order as the provided album ids list
   Future<List<bool>> isSavedAlbums(List<String> ids) async {
     assert(ids.isNotEmpty, 'No album ids were provided for checking');
-    final jsonString =
-        await _api._get('$_path/albums/contains?ids=${ids.join(",")}');
+    final jsonString = await _api._get('$_path/albums/contains?ids=${ids.join(",")}');
     final list = List.castFrom<dynamic, bool>(json.decode(jsonString));
     return list;
   }
