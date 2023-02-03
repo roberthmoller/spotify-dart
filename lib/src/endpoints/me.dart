@@ -17,10 +17,16 @@ class Me extends EndpointPaging {
   }
 
   Future<Player> play({
+    final String? deviceId,
     final String? contextUri,
     final Iterable<String>? uris,
     final int? positionMs,
   }) async {
+    final query = <String, dynamic>{};
+    if (deviceId != null) {
+      query['device_id'] = deviceId;
+    }
+
     final body = <String, dynamic>{};
     if (contextUri != null) {
       body['context_uri'] = contextUri;
@@ -32,7 +38,27 @@ class Me extends EndpointPaging {
       body['position_ms'] = positionMs;
     }
 
-    final jsonString = await _api._put(_path + '/player/play', json.encode(body));
+    final queryUrl = query.isNotEmpty
+        ? '?' + query.entries.map((query) => '${query.key}=${query.value}').join('&')
+        : '';
+    final jsonString = await _api._put(_path + '/player/play' + queryUrl, json.encode(body));
+    final map = json.decode(jsonString);
+    return Player.fromJson(map);
+  }
+
+  Future<Player> transferAudioTo({
+    required final List<String> deviceIds,
+    final bool? play = true,
+  }) async {
+    final body = <String, dynamic>{};
+    if (deviceIds.isEmpty) {
+      throw Exception('deviceIds must not be empty');
+    }
+
+    body['device_ids'] = deviceIds;
+      body['play'] = play;
+
+    final jsonString = await _api._put(_path + '/player', json.encode(body));
     final map = json.decode(jsonString);
     return Player.fromJson(map);
   }
