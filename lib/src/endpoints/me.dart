@@ -19,7 +19,7 @@ class Me extends EndpointPaging {
   Future<Player> play({
     final String? contextUri,
     final Iterable<String>? uris,
-    final int? position,
+    final int? positionMs,
   }) async {
     final body = <String, dynamic>{};
     if (contextUri != null) {
@@ -28,8 +28,8 @@ class Me extends EndpointPaging {
     if (uris != null) {
       body['uris'] = uris;
     }
-    if (position != null) {
-      body['position'] = position;
+    if (positionMs != null) {
+      body['position_ms'] = positionMs;
     }
 
     final jsonString = await _api._put(_path + '/player/play', json.encode(body));
